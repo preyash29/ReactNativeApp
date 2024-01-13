@@ -72,7 +72,7 @@ const Register = (props) => {
 
       try {
         await dispatch(registerAsync(userData));
-        console.log('Registration message:', registerMessage);
+        console.log('Registration message ---:', registerMessage);
         console.log('Registration status:', registerStatus);
       } catch (error) {
         console.error('Registration error:', error.message);

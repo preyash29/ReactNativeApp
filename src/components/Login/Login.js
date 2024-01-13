@@ -10,8 +10,11 @@ import {
 import React, {useState, useEffect,useRef} from 'react';
 import {useNavigation} from '@react-navigation/native';
 const {width,height}= Dimensions.get('window')
-
+import { setLogin } from '../../redux/auth/authSlice';
+import { loginAPI } from '../../redux/auth/authApi';
+import { useDispatch } from 'react-redux';  // Import the useDispatch hook
 const Login = () => {
+  const dispatch = useDispatch();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -38,7 +41,23 @@ const Login = () => {
       </TouchableOpacity>
     );
   };
-
+  const handleLogin = async () => {
+    try {
+      // Pass email and password to the loginAPI function
+      const { user, token } = await loginAPI(email, password);
+      
+      if (user && token) {
+        // Dispatch the setLogin action with user and token
+        dispatch(setLogin({ user, token }));
+        navigation.navigate('Home'); // Replace 'Home' with your desired screen name
+      } else {
+        console.error('Invalid response structure:', { user, token });
+      }
+    } catch (error) {
+      console.error('Login error:', error.message);
+    }
+  };
+  
   const renderTabContent = () => {
     const navigation = useNavigation();
     if (selectedTab === 'Sign In With Email') {
@@ -108,7 +127,9 @@ const Login = () => {
             <Text style={styles.rememberMeText}>Remember Me</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.signInButton} >
+          <TouchableOpacity onPress={handleLogin}
+          
+          style={styles.signInButton} >
             <Text style={styles.signInButtonText}>Sign In</Text>
           </TouchableOpacity>
         </View>
