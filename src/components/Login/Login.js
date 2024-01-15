@@ -15,9 +15,11 @@ import { loginAPI } from '../../redux/auth/authApi';
 import { useDispatch } from 'react-redux';  // Import the useDispatch hook
 const Login = () => {
   const dispatch = useDispatch();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('mahesh@gmail.com');
+  const [password, setPassword] = useState('mahesh@123');
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [store_id, setstoreId] = useState('1');
+
   const [selectedTab, setSelectedTab] = useState('Sign In With Email');
   const navigation = useNavigation();
   const [mobileNumber, setMobileNumber] = useState('');
@@ -42,21 +44,50 @@ const Login = () => {
     );
   };
   const handleLogin = async () => {
-    try {
-      // Pass email and password to the loginAPI function
-      const { user, token } = await loginAPI(email, password);
+    // try {
+    //   // Call the loginAPI function with email and password
+    //   const token = await loginAPI(email, password);
       
-      if (user && token) {
-        // Dispatch the setLogin action with user and token
-        dispatch(setLogin({ user, token }));
-        navigation.navigate('Home'); // Replace 'Home' with your desired screen name
+    //   // Dispatch the setLogin action with the obtained token
+    //   dispatch(setLogin({ token }));
+      
+    //   // Navigate to the Home screen or any other screen on successful login
+    //   navigation.navigate('Home'); // Replace 'Home' with your desired screen name
+    // } catch (error) {
+    //   // Handle login failure, e.g., show an error message to the user
+    //   console.error('Login failed:', error.message);
+    // }
+
+    try {
+      const loginResponse = await loginAPI(email, password, store_id);
+      
+      if (loginResponse.success) {
+        console.log('Login successful:', loginResponse.user);
+    
+        // Assuming loginResponse.token contains the token you want to dispatch
+        const { token } = loginResponse;
+    
+        // Dispatch the setLogin action with the obtained token
+        dispatch(setLogin({ token }));
+    
+        // Navigate to the Home screen
+        navigation.navigate('Home');
+    
+        // Additional logic for successful login
       } else {
-        console.error('Invalid response structure:', { user, token });
+        console.error('Login failed:', loginResponse);
+        // Handle login failure
       }
     } catch (error) {
-      console.error('Login error:', error.message);
+      console.error('API call failed:', error.message);
+      // Handle other errors, e.g., network issues, etc.
     }
+    
+
+
+
   };
+  
   
   const renderTabContent = () => {
     const navigation = useNavigation();

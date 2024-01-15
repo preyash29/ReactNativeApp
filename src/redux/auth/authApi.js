@@ -1,67 +1,46 @@
+import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage from the correct package
+import axios from 'axios';
+
 export const BASE_URL = 'https://alharamstores.com/rest/V1/api/';
+let savedToken;
 
-// export const loginAPI = async (email, password) => {
-//   try {
-//     // Simulating a login request, replace this with your actual login logic
-//     const response = await fetch(`${BASE_URL}loginUser`, {
-//       method: 'POST',
-//       headers: {
-//         'Content-Type': 'application/json',
-//       },
-//       body: JSON.stringify({
-//         email: email,
-//         password: password,
-//       }),
-//     });
-
-//     if (!response.ok) {
-//       throw new Error('Invalid credentials');
-//     }
-
-//     const data = await response.json();
-//     console.log('API Response:', data);
-
-//     return {
-//       user: data.user, 
-//       token: data.token, 
-//     };
-//   } catch (error) {
-//     console.error('Login failed:', error.message);
-//     throw new Error('Login failed:---');
-//   }
-// };
-export const loginAPI = async (email, password, token) => {
+export const loginAPI = async (email, password, store_id, token) => {
   console.log('User:', email);
+  console.log('Password:', password);
+  console.log('Store_id:', store_id);
   console.log('Token:', token);
 
   try {
-    const response = await fetch(`${BASE_URL}loginUser`, {
-      method: 'POST',
+    const formData = new FormData();
+    formData.append('username', email);
+    formData.append('password', password);
+    formData.append('store_id', store_id);
+
+    const response = await axios.post(`${BASE_URL}loginUser`, formData, {
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'multipart/form-data',
+        Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({
-        email: email,
-        password: password,
-      }),
     });
 
-    if (!response.ok) {
-      throw new Error('Invalid credentials');
-    }
+    const data = response.data;
+    console.log('API Response:', data);
 
-    const data = await response.json();
-    console.log("API Response:", data); // Log the entire API response
-
-    // Check if the response has the expected structure
     if (data && data.status && data.status.data) {
-      // Extract user and token from the response
-      const { email, token } = data.status.data;
-      console.log("token--",data)
+      const { email, token, store_id } = data.status.data;
+      console.log('Token:', token);
+
+      // Store the token in AsyncStorage
+      await AsyncStorage.setItem('userToken', token);
+
+      // Rest of the user data can be stored if needed
+      await AsyncStorage.setItem('userData', JSON.stringify({ email, store_id }));
 
       return {
         user: email,
         token: token,
+        store_id: store_id,
+        success: true,
       };
     } else {
       console.error('Invalid response structure:', data);
@@ -72,6 +51,8 @@ export const loginAPI = async (email, password, token) => {
     throw new Error('Login failed');
   }
 };
+
+
 
 
 
