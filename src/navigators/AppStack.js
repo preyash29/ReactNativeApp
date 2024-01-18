@@ -1,72 +1,75 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
-  Image, View, Text, ScrollView,
+  Image,
+  View,
+  Text,
+  ScrollView,
   Dimensions,
-  StyleSheet, I18nManager
+  StyleSheet,
+  I18nManager,
 } from 'react-native';
-import {
-  createDrawerNavigator,
-} from '@react-navigation/drawer';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { useTranslation } from 'react-i18next';
+import {createDrawerNavigator} from '@react-navigation/drawer';
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import {useTranslation} from 'react-i18next';
 import Home from '../components/Home/Home';
 import Category from '../components/Category/Category';
 import Notification from '../components/Notification/Notification';
 import Profile from '../components/Profile/Profile';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import { TouchableOpacity } from 'react-native-gesture-handler';
-import { HeaderButtons, Item } from 'react-navigation-header-buttons';
-import { useNavigation } from '@react-navigation/native';
+import {TouchableOpacity} from 'react-native-gesture-handler';
+import {HeaderButtons, Item} from 'react-navigation-header-buttons';
+import {useNavigation} from '@react-navigation/native';
 import Registor from '../components/Registor/Registor';
 import Login from '../components/Login/Login';
-import { createStackNavigator } from '@react-navigation/stack';
+import {createStackNavigator} from '@react-navigation/stack';
 import Icon from 'react-native-vector-icons/AntDesign';
-import Icons from 'react-native-vector-icons/MaterialIcons'
+import Icons from 'react-native-vector-icons/MaterialIcons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {setLogout} from '../redux/auth/authSlice';
+import {useNavigationState, CommonActions} from '@react-navigation/native';
+import {useDispatch, useSelector} from 'react-redux';
+
 const DrawerNavigator = createDrawerNavigator();
 const TabNavigator = createBottomTabNavigator();
 const StackNavigator = createStackNavigator();
 const LoginStack = () => (
   <StackNavigator.Navigator
     screenOptions={{
-      headerShown: false, // Hide the header globally 
-
-    }}
-  >
-    <StackNavigator.Screen name="Login" component={Login}
+      headerShown: false, // Hide the header globally
+    }}>
+    <StackNavigator.Screen
+      name="Login"
+      component={Login}
       options={{
         headerShown: false,
         headerTitle: '',
       }}
-
     />
-    <StackNavigator.Screen name="Registor" component={Registor}
+    <StackNavigator.Screen
+      name="Registor"
+      component={Registor}
       options={{
         headerShown: false,
         headerTitle: '',
       }}
-
     />
-
-    <StackNavigator.Screen name="Home" component={Home}
+    <StackNavigator.Screen
+      name="Home"
+      component={Home}
       options={{
         headerShown: false,
         headerTitle: '',
       }}
-
     />
   </StackNavigator.Navigator>
 );
-
-
-
 const TabsLeft = () => {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return (
     <TabNavigator.Navigator
       screenOptions={{
-
         activeTintColor: '#980404',
         labelStyle: {
           fontSize: 12,
@@ -75,15 +78,14 @@ const TabsLeft = () => {
         style: {
           backgroundColor: 'white',
         },
-      }}
-    >
+      }}>
       <TabNavigator.Screen
         name="Home"
         component={Home}
-        options={({ route }) => ({
+        options={({route}) => ({
           headerShown: false,
           tabBarLabel: t('Home'),
-          tabBarIcon: ({ color, size, focused }) => (
+          tabBarIcon: ({color, size, focused}) => (
             <Icon
               name="home" // AntDesign home icon
               size={size}
@@ -95,10 +97,10 @@ const TabsLeft = () => {
       <TabNavigator.Screen
         name="Category"
         component={Category}
-        options={({ route }) => ({
+        options={({route}) => ({
           headerShown: false,
           tabBarLabel: t('Category'),
-          tabBarIcon: ({ color, size, focused }) => (
+          tabBarIcon: ({color, size, focused}) => (
             <Icons
               name="category" // AntDesign home icon
               size={size}
@@ -110,10 +112,10 @@ const TabsLeft = () => {
       <TabNavigator.Screen
         name="Notification"
         component={Notification}
-        options={({ route }) => ({
+        options={({route}) => ({
           headerShown: false,
           tabBarLabel: t('Notification'),
-          tabBarIcon: ({ color, size, focused }) => (
+          tabBarIcon: ({color, size, focused}) => (
             <Icons
               name="notifications-on" // AntDesign home icon
               size={size}
@@ -125,10 +127,10 @@ const TabsLeft = () => {
       <TabNavigator.Screen
         name="Profile"
         component={Profile}
-        options={({ route }) => ({
+        options={({route}) => ({
           headerShown: false,
           tabBarLabel: t('Profile'),
-          tabBarIcon: ({ color, size, focused }) => (
+          tabBarIcon: ({color, size, focused}) => (
             <FontAwesome5
               name="user-tie" // AntDesign home icon
               size={size}
@@ -141,12 +143,10 @@ const TabsLeft = () => {
   );
 };
 const TabsRight = () => {
-  const { t } = useTranslation();
-
+  const {t} = useTranslation();
   return (
     <TabNavigator.Navigator
       screenOptions={{
-
         activeTintColor: '#980404',
         labelStyle: {
           fontSize: 12,
@@ -155,15 +155,14 @@ const TabsRight = () => {
         style: {
           backgroundColor: 'white',
         },
-      }}
-    >
+      }}>
       <TabNavigator.Screen
         name="Profile"
         component={Profile}
-        options={({ route }) => ({
+        options={({route}) => ({
           headerShown: false,
           tabBarLabel: t('Profile'),
-          tabBarIcon: ({ color, size, focused }) => (
+          tabBarIcon: ({color, size, focused}) => (
             <FontAwesome5
               name="user-tie" // AntDesign home icon
               size={size}
@@ -175,10 +174,10 @@ const TabsRight = () => {
       <TabNavigator.Screen
         name="Notification"
         component={Notification}
-        options={({ route }) => ({
+        options={({route}) => ({
           headerShown: false,
           tabBarLabel: t('Notification'),
-          tabBarIcon: ({ color, size, focused }) => (
+          tabBarIcon: ({color, size, focused}) => (
             <Icons
               name="notifications-on" // AntDesign home icon
               size={size}
@@ -191,10 +190,10 @@ const TabsRight = () => {
       <TabNavigator.Screen
         name="Category"
         component={Category}
-        options={({ route }) => ({
+        options={({route}) => ({
           headerShown: false,
           tabBarLabel: t('Category'),
-          tabBarIcon: ({ color, size, focused }) => (
+          tabBarIcon: ({color, size, focused}) => (
             <Icons
               name="category" // AntDesign home icon
               size={size}
@@ -206,10 +205,10 @@ const TabsRight = () => {
       <TabNavigator.Screen
         name="Home"
         component={Home}
-        options={({ route }) => ({
+        options={({route}) => ({
           headerShown: false,
           tabBarLabel: t('Home'),
-          tabBarIcon: ({ color, size, focused }) => (
+          tabBarIcon: ({color, size, focused}) => (
             <Icon
               name="home" // AntDesign home icon
               size={size}
@@ -218,32 +217,44 @@ const TabsRight = () => {
           ),
         })}
       />
-
     </TabNavigator.Navigator>
   );
 };
 const Tabs = () => {
-  const { i18n } = useTranslation();
+  const {i18n} = useTranslation();
 
   // Determine the tabBarPosition based on the selected language
   const tabBarPosition = i18n.language === 'ar' ? 'right' : 'left';
 
   return tabBarPosition === 'left' ? <TabsLeft /> : <TabsRight />;
 };
-const { width, height } = Dimensions.get('window');
-const DrawerContent = props => {
+const {width, height} = Dimensions.get('window');
+const DrawerContent = ({navigation, route}) => {
+  const dispatch = useDispatch();
+
+  const handleLogout = () => {
+    navigation.closeDrawer();
+    dispatch(setLogout());
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{name: 'Login'}],
+      }),
+    );
+  };
+
   const [isWomenFashionVisible, setIsWomenFashionVisible] = useState(false);
-  const [isSubWomenFashionVisible, setIsSubWomenFashionVisible] = useState(false);
+  const [isSubWomenFashionVisible, setIsSubWomenFashionVisible] =
+    useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState('en');
   const handleWomenFashionPress = () => {
     setIsWomenFashionVisible(!isWomenFashionVisible);
     setIsSubWomenFashionVisible(false);
-
   };
   const handleWomenSubFashionPress = () => {
     setIsSubWomenFashionVisible(!isSubWomenFashionVisible);
   };
-  const { t, i18n } = useTranslation();
+  const {t, i18n} = useTranslation();
   const changeLanguageButtonHandler = () => {
     // Toggle between English and Hindi for demonstration
     const langCode = i18n.language === 'en' ? 'ar' : 'en';
@@ -251,32 +262,30 @@ const DrawerContent = props => {
   };
   const [showLanguagesList, setShowLanguagesList] = useState(true);
 
-
-
-  const changeLanguage = (lang) => {
+  const changeLanguage = lang => {
     i18n.changeLanguage(lang);
     setShowLanguagesList(false);
     console.log('Selected Language:', t(lang));
   };
   return (
-    <ScrollView style={{ flex: 1 }}>
+    <ScrollView style={{flex: 1}}>
       <View style={{}}>
-        <View style={{ backgroundColor: '#fff8bd', padding: 20 }}>
-          <View style={{ flexDirection: 'row' }}>
+        <View style={{backgroundColor: '#fff8bd', padding: 20}}>
+          <View style={{flexDirection: 'row'}}>
             <FontAwesome5 name="user-circle" size={35} color="#9f0202" />
-            <View style={{ alignSelf: 'center', paddingHorizontal: 10, flex: 1 }}>
+            <View style={{alignSelf: 'center', paddingHorizontal: 10, flex: 1}}>
               <Text
-                style={{ color: '#9f0202', fontSize: 18, fontWeight: 'bold' }}>
+                style={{color: '#9f0202', fontSize: 18, fontWeight: 'bold'}}>
                 John Mark
               </Text>
             </View>
-            <View style={{ alignSelf: 'center' }}>
+            <View style={{alignSelf: 'center'}}>
               <FontAwesome5 name="user-edit" size={18} color="#9f0202" />
             </View>
           </View>
         </View>
       </View>
-      <View style={{ paddingVertical: 10, paddingHorizontal: 20 }}>
+      <View style={{paddingVertical: 10, paddingHorizontal: 20}}>
         <TouchableOpacity onPress={() => props.navigation.navigate('Tabs')}>
           <Text
             style={{
@@ -288,13 +297,11 @@ const DrawerContent = props => {
             {t('Home')}
           </Text>
         </TouchableOpacity>
-
       </View>
 
-
-      <View style={{ paddingVertical: 10, paddingHorizontal: 20 }}>
-        <View style={{ flexDirection: 'row' }}>
-          <View style={{ flex: 1 }}>
+      <View style={{paddingVertical: 10, paddingHorizontal: 20}}>
+        <View style={{flexDirection: 'row'}}>
+          <View style={{flex: 1}}>
             <TouchableOpacity
               onPress={() => props.navigation.navigate('Registor')}>
               <Text
@@ -310,11 +317,11 @@ const DrawerContent = props => {
           </View>
           <Image
             source={require('../assests/en.png')}
-            style={{ width: width * 5 / 100, height: 20 }}
+            style={{width: (width * 5) / 100, height: 20}}
           />
         </View>
       </View>
-      <View style={{ paddingVertical: 10, paddingHorizontal: 20 }}>
+      <View style={{paddingVertical: 10, paddingHorizontal: 20}}>
         <TouchableOpacity onPress={handleWomenFashionPress}>
           <View
             style={{
@@ -331,7 +338,7 @@ const DrawerContent = props => {
               }}>
               Women's fashion
             </Text>
-            <View style={{ alignSelf: 'center' }}>
+            <View style={{alignSelf: 'center'}}>
               <MaterialIcons
                 name={
                   isWomenFashionVisible
@@ -345,10 +352,8 @@ const DrawerContent = props => {
           </View>
         </TouchableOpacity>
 
-
         {isWomenFashionVisible && (
-          <View style={{ marginTop: 10 }}>
-
+          <View style={{marginTop: 10}}>
             <TouchableOpacity onPress={handleWomenSubFashionPress}>
               <View
                 style={{
@@ -363,7 +368,7 @@ const DrawerContent = props => {
                   }}>
                   Women's clothing
                 </Text>
-                <View style={{ alignSelf: 'center' }}>
+                <View style={{alignSelf: 'center'}}>
                   <MaterialIcons
                     name={
                       isSubWomenFashionVisible
@@ -381,15 +386,15 @@ const DrawerContent = props => {
         )}
         {isSubWomenFashionVisible && (
           <View>
-            <Text style={{ color: '#040404', fontWeight: 'bold' }}>
+            <Text style={{color: '#040404', fontWeight: 'bold'}}>
               Women's fashion content goes here!
             </Text>
           </View>
         )}
       </View>
 
-      <View style={{ paddingVertical: 10, paddingHorizontal: 20 }}>
-        <TouchableOpacity onPress={() => props.navigation.navigate('Login')}>
+      <View style={{paddingVertical: 10, paddingHorizontal: 20}}>
+        <TouchableOpacity onPress={handleLogout}>
           <Text
             style={{
               textTransform: 'uppercase',
@@ -400,38 +405,38 @@ const DrawerContent = props => {
             {t('LOGOUT')}
           </Text>
         </TouchableOpacity>
-
       </View>
       <View>
-
         <View style={styles.btns}>
           <TouchableOpacity
             style={[
               styles.btn,
               selectedLanguage === 'en' ? styles.selectedBtn : null,
             ]}
-            onPress={changeLanguageButtonHandler}
-          >
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Text style={{ color: 'white', marginRight: 5 }}>{i18n.language === 'ar' ? t('English') : t('عربي')}</Text>
+            onPress={changeLanguageButtonHandler}>
+            <View style={{flexDirection: 'row', alignItems: 'center'}}>
+              <Text style={{color: 'white', marginRight: 5}}>
+                {i18n.language === 'ar' ? t('English') : t('عربي')}
+              </Text>
               <Image
                 source={
                   i18n.language === 'en'
                     ? require('../assests/ar.png')
                     : require('../assests/en.png')
                 }
-
-                style={{ width: width * 5 / 100, height: height * 3 / 100, alignSelf: 'center' }} />
+                style={{
+                  width: (width * 5) / 100,
+                  height: (height * 3) / 100,
+                  alignSelf: 'center',
+                }}
+              />
             </View>
-
           </TouchableOpacity>
-
         </View>
       </View>
     </ScrollView>
   );
 };
-
 
 const CustomHeaderleft = () => {
   const navigation = useNavigation();
@@ -443,60 +448,47 @@ const CustomHeaderleft = () => {
     navigation.navigate('Home');
   };
   return (
-    <View style={{
-      flexDirection: "row", alignSelf: "center",
-      width: width, justifyContent: "space-between", flex: 1, paddingHorizontal: 10
-    }}>
-      <View style={{ alignSelf: "center", width: width * 10 / 100, }}>
+    <View
+      style={{
+        flexDirection: 'row',
+        alignSelf: 'center',
+        width: width,
+        justifyContent: 'space-between',
+        flex: 1,
+        paddingHorizontal: 10,
+      }}>
+      <View style={{alignSelf: 'center', width: (width * 10) / 100}}>
         <TouchableOpacity onPress={handleDrawerOpen}>
-          <Icons
-            name="menu"
-            size={30}
-            color="gray"
-
-          />
+          <Icons name="menu" size={30} color="gray" />
         </TouchableOpacity>
-
       </View>
 
-      <View style={{ flex: 0.9 }}>
+      <View style={{flex: 0.9}}>
         <TouchableOpacity onPress={HomeScreen}>
           <Image
             source={require('../assests/Logo.png')} // Replace with your image path
             style={{
-              width: "70%", height: 50, resizeMode: "contain", alignSelf: "center"
+              width: '70%',
+              height: 50,
+              resizeMode: 'contain',
+              alignSelf: 'center',
             }}
           />
         </TouchableOpacity>
       </View>
 
-
-      <View style={{ flexDirection: "row", alignSelf: "center" }}>
-        <View style={{ padding: 5 }}>
-          <Icon
-            name="search1"
-            size={30}
-            color="gray"
-          />
+      <View style={{flexDirection: 'row', alignSelf: 'center'}}>
+        <View style={{padding: 5}}>
+          <Icon name="search1" size={30} color="gray" />
         </View>
-        <View style={{ padding: 5 }}>
-          <Icon
-            name="hearto"
-            size={30}
-            color="gray"
-          />
+        <View style={{padding: 5}}>
+          <Icon name="hearto" size={30} color="gray" />
         </View>
-        <View style={{ padding: 5 }}>
-          <Icon
-            name="shoppingcart"
-            size={30}
-            color="gray"
-          />
+        <View style={{padding: 5}}>
+          <Icon name="shoppingcart" size={30} color="gray" />
         </View>
-
       </View>
     </View>
-
   );
 };
 const CustomHeaderRight = () => {
@@ -509,65 +501,49 @@ const CustomHeaderRight = () => {
     navigation.navigate('Home');
   };
   return (
-    <View style={{
-      flexDirection: "row", alignSelf: "center",
-      width: width, justifyContent: "space-between", flex: 1, paddingHorizontal: 10
-    }}>
-
-
-
-
-
-      <View style={{ flexDirection: "row", alignSelf: "center" }}>
-        <View style={{ padding: 5 }}>
-          <Icon
-            name="search1"
-            size={30}
-            color="gray"
-          />
+    <View
+      style={{
+        flexDirection: 'row',
+        alignSelf: 'center',
+        width: width,
+        justifyContent: 'space-between',
+        flex: 1,
+        paddingHorizontal: 10,
+      }}>
+      <View style={{flexDirection: 'row', alignSelf: 'center'}}>
+        <View style={{padding: 5}}>
+          <Icon name="search1" size={30} color="gray" />
         </View>
-        <View style={{ padding: 5 }}>
-          <Icon
-            name="hearto"
-            size={30}
-            color="gray"
-          />
+        <View style={{padding: 5}}>
+          <Icon name="hearto" size={30} color="gray" />
         </View>
-        <View style={{ padding: 5 }}>
-          <Icon
-            name="shoppingcart"
-            size={30}
-            color="gray"
-          />
+        <View style={{padding: 5}}>
+          <Icon name="shoppingcart" size={30} color="gray" />
         </View>
-
       </View>
-      <View style={{ flex: 0.9 }}>
+      <View style={{flex: 0.9}}>
         <TouchableOpacity onPress={HomeScreen}>
           <Image
             source={require('../assests/Logo.png')} // Replace with your image path
             style={{
-              width: "70%", height: 50, resizeMode: "contain", alignSelf: "center"
+              width: '70%',
+              height: 50,
+              resizeMode: 'contain',
+              alignSelf: 'center',
             }}
           />
         </TouchableOpacity>
       </View>
-      <View style={{ alignSelf: "center", width: width * 10 / 100, }}>
+      <View style={{alignSelf: 'center', width: (width * 10) / 100}}>
         <TouchableOpacity onPress={handleDrawerOpen}>
-          <Icons
-            name="menu"
-            size={30}
-            color="gray"
-          />
+          <Icons name="menu" size={30} color="gray" />
         </TouchableOpacity>
-
       </View>
     </View>
-
   );
 };
 export default function AppContainer() {
-  const { i18n } = useTranslation();
+  const {i18n} = useTranslation();
   const isLanguageHindi = i18n.language === 'ar';
   const drawerPosition = isLanguageHindi ? 'right' : 'left';
   return (
@@ -575,8 +551,7 @@ export default function AppContainer() {
       screenOptions={{
         drawerPosition: drawerPosition,
       }}
-      drawerContent={props => <DrawerContent {...props} />}
-    >
+      drawerContent={props => <DrawerContent {...props} />}>
       <DrawerNavigator.Screen
         name="Tabs"
         component={Tabs}
@@ -594,7 +569,7 @@ export default function AppContainer() {
       <DrawerNavigator.Screen
         name="Login"
         component={LoginStack}
-        options={{ headerTitle: '', headerShown: false, }}
+        options={{headerTitle: '', headerShown: false}}
       />
     </DrawerNavigator.Navigator>
   );
@@ -647,10 +622,9 @@ const styles = StyleSheet.create({
     width: '100%',
     justifyContent: 'space-evenly',
     alignItems: 'center',
-
   },
   btn: {
-    width: width * 50 / 100,
+    width: (width * 50) / 100,
     height: 50,
     borderWidth: 0.5,
     borderRadius: 1,
@@ -659,7 +633,6 @@ const styles = StyleSheet.create({
   },
   selectedBtn: {
     backgroundColor: '#980404', // You can set your desired background color
-
   },
   container: {
     flex: 1,
@@ -676,7 +649,7 @@ const styles = StyleSheet.create({
     // marginLeft: 10,
     color: 'black',
     fontSize: 15,
-    fontWeight: '400'
+    fontWeight: '400',
   },
   itemContainer: {
     flex: 0.8,
@@ -688,7 +661,7 @@ const styles = StyleSheet.create({
     bottom: 0,
   },
   versionInfo: {
-    marginBottom: 20
+    marginBottom: 20,
   },
   logoutContainer: {
     borderTopColor: 'black',
@@ -709,7 +682,7 @@ const styles = StyleSheet.create({
     flex: 0.2,
   },
   copyRightText: {
-    fontSize: 12
+    fontSize: 12,
   },
   container: {
     flex: 1,

@@ -5,30 +5,48 @@ import {
   StyleSheet,
   TouchableOpacity,
   TextInput,
-  Button,Dimensions
+  Button,
+  Dimensions,
+  ActivityIndicator,
 } from 'react-native';
-import React, {useState, useEffect,useRef} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {useNavigation} from '@react-navigation/native';
-const {width,height}= Dimensions.get('window')
-import { setLogin } from '../../redux/auth/authSlice';
-import { loginAPI } from '../../redux/auth/authApi';
-import { useDispatch } from 'react-redux';  // Import the useDispatch hook
-const Login = () => {
+const {width, height} = Dimensions.get('window');
+import {setLogin} from '../../redux/auth/authSlice';
+import {loginAPI} from '../../redux/auth/authApi';
+import {useDispatch} from 'react-redux'; // Import the useDispatch hook
+import AsyncStorage from '@react-native-async-storage/async-storage';
+// const Login = () => {
+const Login = ({navigation}) => {
   const dispatch = useDispatch();
-  const [email, setEmail] = useState('mahesh@gmail.com');
-  const [password, setPassword] = useState('mahesh@123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [store_id, setstoreId] = useState('1');
-
+  const [loading, setLoading] = useState(false);
   const [selectedTab, setSelectedTab] = useState('Sign In With Email');
-  const navigation = useNavigation();
   const [mobileNumber, setMobileNumber] = useState('');
   const [otpResponse, setOtpResponse] = useState(null);
   const [error, setError] = useState(null);
-  const [passwordVisibility, setPasswordVisibility] = useState(true)
-    const emailRef = useRef(null);
+  const [passwordVisibility, setPasswordVisibility] = useState(true);
+  const emailRef = useRef(null);
   const passwordRef = useRef(null);
   const mobileNumberRef = useRef(null);
+
+  const validateEmail = (email) => {
+    // Use a regular expression for basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+  
+  const validatePassword = (password) => {
+    // Add your password validation logic here
+    // For example, you can check if the password meets certain criteria
+    return password.length >= 6; // Minimum 6 characters for this example
+  };
+
+
+
   const renderTab = tabName => {
     const isSelected = selectedTab === tabName;
 
@@ -43,69 +61,78 @@ const Login = () => {
       </TouchableOpacity>
     );
   };
+  // const handleLogin = async () => {
+  //   try {
+  //     setLoading(true); 
+  //     const loginResponse = await loginAPI(email, password, store_id);
+  //     if (loginResponse.success) {
+  //       console.log('Login successful:', loginResponse.user);
+  //       const userToken = await AsyncStorage.getItem('userToken');
+  //       console.log('User Token:', userToken);
+  //       dispatch(setLogin({ token: userToken }));
+  //       navigation.navigate('Tabs');
+  //     } else {
+  //       console.error('Login failed:', loginResponse);
+  //       alert(loginResponse.message || 'Invalid username or password!');
+  //     }
+  //   } catch (error) {
+  //     console.error('API call failed:', error.message);
+  //     alert('An error occurred. Please try again later.');
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
   const handleLogin = async () => {
-    // try {
-    //   // Call the loginAPI function with email and password
-    //   const token = await loginAPI(email, password);
-      
-    //   // Dispatch the setLogin action with the obtained token
-    //   dispatch(setLogin({ token }));
-      
-    //   // Navigate to the Home screen or any other screen on successful login
-    //   navigation.navigate('Home'); // Replace 'Home' with your desired screen name
-    // } catch (error) {
-    //   // Handle login failure, e.g., show an error message to the user
-    //   console.error('Login failed:', error.message);
-    // }
-
     try {
+      setLoading(true);
+  
+      // Validate email
+      if (!validateEmail(email)) {
+        setLoading(false);
+        return alert('Invalid email address');
+      }
+  
+      // Validate password
+      if (!validatePassword(password)) {
+        setLoading(false);
+        return alert('Invalid password. Minimum 6 characters required');
+      }
+  
       const loginResponse = await loginAPI(email, password, store_id);
-      
       if (loginResponse.success) {
         console.log('Login successful:', loginResponse.user);
-    
-        // Assuming loginResponse.token contains the token you want to dispatch
-        const { token } = loginResponse;
-    
-        // Dispatch the setLogin action with the obtained token
-        dispatch(setLogin({ token }));
-    
-        // Navigate to the Home screen
-        navigation.navigate('Home');
-    
-        // Additional logic for successful login
+        const userToken = await AsyncStorage.getItem('userToken');
+        console.log('User Token:', userToken);
+        dispatch(setLogin({ token: userToken }));
+        navigation.navigate('Tabs');
       } else {
         console.error('Login failed:', loginResponse);
-        // Handle login failure
+        alert(loginResponse.message || 'Invalid username or password!');
       }
     } catch (error) {
       console.error('API call failed:', error.message);
-      // Handle other errors, e.g., network issues, etc.
+      alert('An error occurred. Please try again later.');
+    } finally {
+      setLoading(false);
     }
-    
-
-
-
   };
-  
-  
   const renderTabContent = () => {
     const navigation = useNavigation();
     if (selectedTab === 'Sign In With Email') {
       return (
-                <View style={styles.tabContent}>
+        <View style={styles.tabContent}>
           <View style={styles.inputContainer}>
             <Image
               source={require('../../assests/iconEmail.png')}
-              style={[styles.icon, { marginLeft: 15 }]}
+              style={[styles.icon, {marginLeft: 15}]}
             />
             <TextInput
               ref={emailRef}
-              style={[styles.input, { color: 'black' }]}
+              style={[styles.input, {color: 'black'}]}
               placeholder="Email"
               keyboardType="email-address"
               autoCapitalize="none"
-              onChangeText={(text) => setEmail(text)}
+              onChangeText={text => setEmail(text)}
               value={email}
               placeholderTextColor={'black'}
               onSubmitEditing={() => passwordRef.current.focus()}
@@ -115,12 +142,12 @@ const Login = () => {
           <View style={styles.inputContainer}>
             <Image
               source={require('../../assests/iconPassword.png')}
-              style={[styles.icon, { marginLeft: 15 }]}
+              style={[styles.icon, {marginLeft: 15}]}
             />
             <TextInput
               ref={passwordRef}
-              style={[styles.input, { color: 'black' }]}
-              onChangeText={(text) => setPassword(text)}
+              style={[styles.input, {color: 'black'}]}
+              onChangeText={text => setPassword(text)}
               value={password}
               secureTextEntry={passwordVisibility}
               placeholder="Password"
@@ -131,8 +158,7 @@ const Login = () => {
               onPress={() => setPasswordVisibility(!passwordVisibility)}>
               <Image
                 source={{
-                  uri:
-                    'https://cdn-icons-png.flaticon.com/128/3257/3257787.png',
+                  uri: 'https://cdn-icons-png.flaticon.com/128/3257/3257787.png',
                 }}
                 style={[
                   styles.icon,
@@ -145,7 +171,7 @@ const Login = () => {
             </TouchableOpacity>
           </View>
           <TouchableOpacity onPress={() => alert('Forgot Password pressed')}>
-            <Text style={{ alignSelf: 'flex-end' }}>Forgot Password?</Text>
+            <Text style={{alignSelf: 'flex-end'}}>Forgot Password?</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.rememberMeButton}>
             <Image
@@ -158,13 +184,22 @@ const Login = () => {
             <Text style={styles.rememberMeText}>Remember Me</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={handleLogin}
-          
-          style={styles.signInButton} >
+          {/* <TouchableOpacity onPress={handleLogin} style={styles.signInButton}>
             <Text style={styles.signInButtonText}>Sign In</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
+          <TouchableOpacity
+          onPress={handleLogin}
+          style={[styles.signInButton, loading && styles.signInButtonDisabled]}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <Text style={styles.signInButtonText}>Sign In</Text>
+          )}
+        </TouchableOpacity>
         </View>
-       
+        
       );
     } else if (selectedTab === 'Use Mobile No') {
       return (
@@ -188,7 +223,7 @@ const Login = () => {
             <Text style={{alignSelf: 'flex-end'}}>Forgot Password?</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.signInButton} >
+          <TouchableOpacity style={styles.signInButton}>
             <Text style={styles.signInButtonText}>Send OTP</Text>
           </TouchableOpacity>
           <View
@@ -254,39 +289,36 @@ const Login = () => {
   };
 
   return (
-      
- <View style={{backgroundColor:"#fff",flex:1}}>
- <View style={{backgroundColor:"#8b0000",height:"20%"}}>
+    <View style={{backgroundColor: '#fff', flex: 1}}>
+      <View style={{backgroundColor: '#8b0000', height: '20%'}}></View>
 
- </View>
- 
-      <View style={{backgroundColor:"#fff",width:width *50/100,height:height *15/100,alignSelf:"center",bottom:'7%',justifyContent:'center',borderColor: '#d3d3d3', // Set your desired border color
-    borderWidth: 1,
-    
-    borderRadius: 20,
-   
-   
-   }}>
-      <Image
-      source={require('../../assests/Logo.png')} // Replace with your splash image path
-      style={styles.logo}
-      resizeMode="contain"
-    />
-    
-     </View>
-       <View style={{}}>
-      <View style={styles.tabBar}>
-        {renderTab('Sign In With Email')}
-        {renderTab('Use Mobile No')}
-   </View>
+      <View
+        style={{
+          backgroundColor: '#fff',
+          width: (width * 50) / 100,
+          height: (height * 15) / 100,
+          alignSelf: 'center',
+          bottom: '7%',
+          justifyContent: 'center',
+          borderColor: '#d3d3d3', // Set your desired border color
+          borderWidth: 1,
+
+          borderRadius: 20,
+        }}>
+        <Image
+          source={require('../../assests/Logo.png')} // Replace with your splash image path
+          style={styles.logo}
+          resizeMode="contain"
+        />
+      </View>
+      <View style={{}}>
+        <View style={styles.tabBar}>
+          {renderTab('Sign In With Email')}
+          {renderTab('Use Mobile No')}
+        </View>
         {renderTabContent()}
       </View>
-
-
-
-
-</View>
- 
+    </View>
   );
 };
 
@@ -295,6 +327,9 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: 'white',
     flex: 1,
+  },
+  signInButtonDisabled: {
+    backgroundColor: '#ccc', // Set a different color for the disabled state
   },
   buttonContainer: {
     top: 20,
@@ -314,19 +349,18 @@ const styles = StyleSheet.create({
   logocontainer: {
     borderColor: '#d3d3d3', // Set your desired border color
     borderWidth: 2,
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
     borderRadius: 40,
     // width: "75%",
-    alignSelf: "center",
+    alignSelf: 'center',
     marginVertical: 70,
-    height: "50%"
+    height: '50%',
   },
   logo: {
     alignItems: 'center',
-    width: 140,  // Set the width of the image as needed
+    width: 140, // Set the width of the image as needed
     height: 80,
     marginHorizontal: 20,
-    
   },
   container1: {
     flexDirection: 'row',
@@ -391,7 +425,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
   },
   selectedTab: {
-      borderBottomWidth: 2,
+    borderBottomWidth: 2,
     borderColor: '#8b0000',
     paddingVertical: 15,
   },
@@ -399,7 +433,7 @@ const styles = StyleSheet.create({
     color: 'black',
     fontSize: 17,
   },
- 
+
   icon: {
     width: 20,
     height: 20,

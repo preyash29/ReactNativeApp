@@ -18,7 +18,12 @@ const loginSlice = createSlice({
     status: 'idle',
     error: null,
   },
-  reducers: {},
+  reducers: {
+    setUserData: (state, action) => {
+      state.username = action.payload.username;
+      state.email = action.payload.email;
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(loginAsync.pending, (state) => {
@@ -26,11 +31,11 @@ const loginSlice = createSlice({
       })
       .addCase(loginAsync.fulfilled, (state, action) => {
         state.status = 'succeeded';
+        const { username, email } = action.payload.data;
         console.log('Login successful:', action.payload.message);
 
-        // Assuming the API response has username and email properties
-        state.username = action.payload.username;
-        state.email = action.payload.email;
+        // Dispatch the setUserData action to update state
+        loginSlice.caseReducers.setUserData(state, { payload: { username, email } });
       })
       .addCase(loginAsync.rejected, (state, action) => {
         state.status = 'failed';

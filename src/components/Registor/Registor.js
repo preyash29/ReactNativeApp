@@ -1,99 +1,164 @@
-import React, { useState, useRef } from 'react';
-import { Dimensions, View, Text, Image, StyleSheet, TouchableOpacity, TextInput, ScrollView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { useDispatch, useSelector } from 'react-redux';
-import { registerAsync, selectRegisterMessage, selectRegisterStatus } from '../../redux/auth/registerSlice';
-
-const { width, height } = Dimensions.get('window');
-
-const Register = (props) => {
-  const dispatch = useDispatch();
+import React, {useState, useRef} from 'react';
+import {
+  Dimensions,
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+  TextInput,
+  ScrollView,
+  ActivityIndicator,
+  Alert,
+} from 'react-native';
+import {useNavigation} from '@react-navigation/native';
+import {useDispatch, useSelector} from 'react-redux';
+import {registerAPI} from '../../redux/auth/authApi';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+const {width, height} = Dimensions.get('window');
+const Register = props => {
   const navigation = useNavigation();
-
+  const [responseMessage, setResponseMessage] = useState(null);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-
   const [firstNameError, setFirstNameError] = useState('');
   const [lastNameError, setLastNameError] = useState('');
   const [emailError, setEmailError] = useState('');
   const [phoneNumberError, setPhoneNumberError] = useState('');
   const [passwordError, setPasswordError] = useState('');
-  const [confirmPasswordError, setConfirmPasswordError] = useState('');
-
+  const [ConfirmPasswordError, setConfirmPasswordError] = useState('');
+  const [loading, setLoading] = useState(false);
   const lastNameRef = useRef(null);
   const emailRef = useRef(null);
   const phoneNumberRef = useRef(null);
   const passwordRef = useRef(null);
   const confirmPasswordRef = useRef(null);
-
-  const registerMessage = useSelector(selectRegisterMessage);
-  const registerStatus = useSelector(selectRegisterStatus);
-
-  const focusNextInput = (ref) => {
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const focusNextInput = ref => {
     if (ref && ref.current) {
       ref.current.focus();
     }
   };
-
-  const validateInputs = () => {
-    // Implement your validation logic here
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setEmailError('Invalid email address');
-      return false;
-    }
-
-    setEmailError('');
-    return true;
-  };
-
-  const handleRegister = async () => {
-    setFirstNameError('');
-    setLastNameError('');
-    setEmailError('');
-    setPhoneNumberError('');
-    setPasswordError('');
-    setConfirmPasswordError('');
-
-    const isInputsValid = validateInputs();
-
-    if (isInputsValid) {
-      const userData = {
-        firstName,
-        lastName,
-        email,
-        phoneNumber,
-        password,
-        confirmPassword,
-      };
-
-      try {
-        await dispatch(registerAsync(userData));
-        console.log('Registration message ---:', registerMessage);
-        console.log('Registration status:', registerStatus);
-      } catch (error) {
-        console.error('Registration error:', error.message);
+  const handleRegistration = async () => {
+    try {
+      if (!validateInputs() || loading) {
+        return;
       }
+      setLoading(true);
+      const userData = {
+        mobile: phoneNumber,
+        password: password,
+        firstname: firstName,
+        lastname: lastName,
+        email: email,
+        otptype: 'register',
+        store_id: '1',
+        auth: '',
+        resend: 'register',
+      };
+      const response = await registerAPI(userData);
+      console.log('API Response:', response.message);
+      if (response.status === 'error' && response.message) {
+        // console.log('Error Message:', response.message);
+        if (response.message.toLowerCase().includes('already registered')) {
+          Alert.alert(
+            'Registration Error',
+            'There is already an account registered with this email.',
+          );
+          console.log(
+            'res',
+            response.message.toLowerCase().includes('already registered'),
+          );
+        } else {
+          Alert.alert('Registration Error', response.message);
+          console.log('reg err', response.message);
+        }
+      } else {
+        setResponseMessage(response.message);
+      }
+    } catch (error) {
+      console.error('Error during registration:', error);
+      Alert.alert(
+        'Registration Error',
+        'An unexpected error occurred. Please try again later.',
+      );
+      setResponseMessage('Error during registration');
+    } finally {
+      setLoading(false);
     }
   };
+  const validateInputs = () => {
+    let isValid = true;
 
+    if (!firstName.trim()) {
+      setFirstNameError('First name is required');
+      isValid = false;
+    } else {
+      setFirstNameError('');
+    }
+
+    if (!lastName.trim()) {
+      setLastNameError('Last name is required');
+      isValid = false;
+    } else {
+      setLastNameError('');
+    }
+
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setEmailError('Invalid email address');
+      isValid = false;
+    } else {
+      setEmailError('');
+    }
+
+    if (!phoneNumber.trim()) {
+      setPhoneNumberError('Mobile number is required');
+      isValid = false;
+    } else {
+      setPhoneNumberError('');
+    }
+
+    if (!password.trim()) {
+      setPasswordError(
+        'Password is required and must be at least 6 characters',
+      );
+      isValid = false;
+    } else if (password.length < 6) {
+      setPasswordError('Password must be at least 6 characters');
+      isValid = false;
+    } else {
+      setPasswordError('');
+    }
+
+    if (password !== confirmPassword) {
+      setConfirmPasswordError('Passwords do not match');
+      isValid = false;
+    } else {
+      setConfirmPasswordError('');
+    }
+
+    return isValid;
+  };
   return (
-    <View style={{ backgroundColor: '#fff', flex: 1 }}>
-      <View style={{ backgroundColor: '#8b0000', height: '20%' }}></View>
-      <View style={{
-        backgroundColor: '#fff',
-        width: width * 50 / 100,
-        height: height * 15 / 100,
-        alignSelf: 'center',
-        bottom: '7%',
-        justifyContent: 'center',
-        borderColor: '#d3d3d3',
-        borderWidth: 1,
-        borderRadius: 20,
-      }}>
+    <View style={{backgroundColor: '#fff', flex: 1}}>
+      <View style={{backgroundColor: '#8b0000', height: '20%'}}></View>
+      <View
+        style={{
+          backgroundColor: '#fff',
+          width: (width * 50) / 100,
+          height: (height * 15) / 100,
+          alignSelf: 'center',
+          bottom: '7%',
+          justifyContent: 'center',
+          borderColor: '#d3d3d3',
+          borderWidth: 1,
+          borderRadius: 20,
+        }}>
         <Image
           source={require('../../assests/Logo.png')}
           style={styles.logo}
@@ -102,101 +167,168 @@ const Register = (props) => {
       </View>
       <ScrollView>
         <View style={styles.tabContent}>
-          <Text style={{
-            fontSize: 25,
-            textAlign: 'center', fontWeight: '700', color: 'black', textDecorationLine: 'underline'
-          }}>
+          <Text
+            style={{
+              fontSize: 25,
+              textAlign: 'center',
+              fontWeight: '700',
+              color: 'black',
+              textDecorationLine: 'underline',
+            }}>
             CREATE
           </Text>
-          <Text style={{
-            fontSize: 25,
-            textAlign: 'center', fontWeight: '700', color: 'black', textDecorationLine: 'underline',
-          }}>
+          <Text
+            style={{
+              fontSize: 25,
+              textAlign: 'center',
+              fontWeight: '700',
+              color: 'black',
+              textDecorationLine: 'underline',
+            }}>
             YOUR ACCOUNT
           </Text>
           <View style={styles.inputContainer}>
-            <Image source={require('../../assests/iconUser1.png')} style={styles.icon} />
+            <Image
+              source={require('../../assests/iconUser1.png')}
+              style={styles.icon}
+            />
             <TextInput
               style={styles.input}
               placeholder="First name"
               keyboardType="default"
-              onChangeText={(text) => setFirstName(text)}
+              onChangeText={text => setFirstName(text)}
               returnKeyType="next"
               onSubmitEditing={() => focusNextInput(lastNameRef)}
+              value={firstName}
             />
           </View>
           <Text style={styles.errorText}>{firstNameError}</Text>
           <View style={styles.inputContainer}>
-            <Image source={require('../../assests/iconUser1.png')} style={styles.icon} />
+            <Image
+              source={require('../../assests/iconUser1.png')}
+              style={styles.icon}
+            />
             <TextInput
               ref={lastNameRef}
               style={styles.input}
               placeholder="Last name"
               keyboardType="default"
-              onChangeText={(text) => setLastName(text)}
+              onChangeText={text => setLastName(text)}
               returnKeyType="next"
               onSubmitEditing={() => focusNextInput(emailRef)}
+              value={lastName}
             />
           </View>
           <Text style={styles.errorText}>{lastNameError}</Text>
           <View style={styles.inputContainer}>
-            <Image source={require('../../assests/iconEmail.png')} style={styles.icon} />
+            <Image
+              source={require('../../assests/iconEmail.png')}
+              style={styles.icon}
+            />
             <TextInput
               ref={emailRef}
               style={styles.input}
               placeholder="Email"
               keyboardType="email-address"
-              onChangeText={(text) => setEmail(text)}
+              onChangeText={text => setEmail(text)}
               returnKeyType="next"
               onSubmitEditing={() => focusNextInput(phoneNumberRef)}
+              value={email}
             />
           </View>
           <Text style={styles.errorText}>{emailError}</Text>
           <View style={styles.inputContainer}>
-            <Image source={require('../../assests/cellphone.png')} style={styles.icon} />
+            <Image
+              source={require('../../assests/cellphone.png')}
+              style={styles.icon}
+            />
             <TextInput
               ref={phoneNumberRef}
               style={styles.input}
               placeholder="Mobile number"
               keyboardType="phone-pad"
-              onChangeText={(text) => setPhoneNumber(text)}
+              onChangeText={text => setPhoneNumber(text)}
               returnKeyType="next"
               onSubmitEditing={() => focusNextInput(passwordRef)}
+              value={phoneNumber}
             />
           </View>
           <Text style={styles.errorText}>{phoneNumberError}</Text>
           <View style={styles.inputContainer}>
-            <Image source={require('../../assests/iconPassword.png')} style={styles.icon} />
+            <Image
+              source={require('../../assests/iconPassword.png')}
+              style={styles.icon}
+            />
             <TextInput
               ref={passwordRef}
               style={styles.input}
               placeholder="Password"
-              secureTextEntry
-              onChangeText={(text) => setPassword(text)}
+              secureTextEntry={!showPassword} // Toggle secureTextEntry based on showPassword state
+              onChangeText={text => setPassword(text)}
               returnKeyType="next"
               onSubmitEditing={() => focusNextInput(confirmPasswordRef)}
+              value={password}
             />
+            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+              <Ionicons
+                name={showPassword ? 'eye-off' : 'eye'}
+                size={24}
+                color="black"
+              />
+            </TouchableOpacity>
           </View>
           <Text style={styles.errorText}>{passwordError}</Text>
           <View style={styles.inputContainer}>
-            <Image source={require('../../assests/iconPassword.png')} style={styles.icon} />
+            <Image
+              source={require('../../assests/iconPassword.png')}
+              style={styles.icon}
+            />
             <TextInput
               ref={confirmPasswordRef}
               style={styles.input}
               placeholder="Re-enter password"
-              secureTextEntry
-              onChangeText={(text) => setConfirmPassword(text)}
+              secureTextEntry={!showConfirmPassword} // Toggle secureTextEntry based on showConfirmPassword state
+              onChangeText={text => setConfirmPassword(text)}
               returnKeyType="done"
+              value={confirmPassword}
             />
+            <TouchableOpacity
+              onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+              <Ionicons
+                name={showConfirmPassword ? 'eye-off' : 'eye'}
+                size={24}
+                color="black"
+              />
+            </TouchableOpacity>
           </View>
-          <Text style={styles.errorText}>{confirmPasswordError}</Text>
-          <TouchableOpacity style={styles.signInButton} onPress={() => handleRegister()}>
-            <Text style={styles.signInButtonText}>Sign Up</Text>
+          <Text style={styles.errorText}>{ConfirmPasswordError}</Text>
+          <TouchableOpacity
+            // style={styles.signInButton}
+            onPress={handleRegistration}
+            style={[
+              styles.signInButton,
+              loading && styles.signInButtonDisabled,
+            ]}
+            disabled={loading} // Disable button while loading
+          >
+            {loading ? (
+              // If loading, show a spinner or activity indicator
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              // If not loading, show the regular Sign Up text
+              <Text style={styles.signInButtonText}>Sign Up</Text>
+            )}
           </TouchableOpacity>
-          <View style={{ justifyContent: 'center', alignItems: 'center', marginBottom: 60 }}>
-            <Text style={{ color: 'black', fontSize: 17 }}>New Customer</Text>
+          <View
+            style={{
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginBottom: 60,
+            }}>
+            <Text style={{color: 'black', fontSize: 17}}>New Customer</Text>
           </View>
           <TouchableOpacity
+            onPress={() => navigation.navigate('Login')}
             style={{
               backgroundColor: '#00A300',
               paddingVertical: 7,
@@ -205,8 +337,7 @@ const Register = (props) => {
               width: '95%',
               bottom: 40,
               marginHorizontal: 10,
-            }}
-           >
+            }}>
             <Text style={styles.signInButtonText}>Sign In</Text>
           </TouchableOpacity>
         </View>
@@ -257,6 +388,9 @@ const styles = StyleSheet.create({
     width: '95%',
     marginHorizontal: 10,
     marginVertical: 20,
+  },
+  signInButtonDisabled: {
+    backgroundColor: '#ccc', // Set a different color for the disabled state
   },
   signInButtonText: {
     color: '#fff',
